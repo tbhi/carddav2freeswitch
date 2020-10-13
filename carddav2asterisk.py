@@ -5,7 +5,7 @@ import sys
 import requests
 import vobject
 import re
-from asterisk import manager
+import pymemcache.client.base
 from requests.auth import HTTPBasicAuth
 from lxml import etree
 from urllib.parse import urlparse
@@ -33,38 +33,12 @@ def tidyPhoneNumber(num):
   return num
 
 
-class NoManager(object):
-
-  def connect(self, host):
-    pass
-
-  def login(self, user, password):
-    pass
-
-  def send_action(self, data):
-    pass
-  
-  def logoff(self):
-    pass
-
-  def close(self):
-    pass
-
-
 def main(args, config):
   auth = HTTPBasicAuth(config['carddav']['user'], config['carddav']['pass'])
   url = config['carddav']['url']
-
-  # connect to asterisk
-  if args.no_update:
-    ami = NoManager()
-  else:    
-    ami = manager.Manager()
-  ami.connect(config['ami']['host'])
-  ami.login(config['ami']['user'], config['ami']['pass'])
-
+  client = pymemcache.client.base.Client('localhost')
   # get phone numbers from vcard
-  for vurl in getAllVcardLinks(url,auth):
+  for vurl in getAllVcardLinks(url, auth):
     r = requests.request("GET",vurl,auth=auth)
     vcard = vobject.readOne(r.text)
     if "tel" in vcard.contents:
@@ -73,15 +47,13 @@ def main(args, config):
         if "fn" in vcard.contents:
           name = vcard.fn.value
           print("Adding/updating Number: "+num+" Name: "+name)
-          ami.send_action({"Action": "DBPut", "Family": "cidname", "Key": num, "Val": name})
-  ami.logoff()
-  ami.close()
+          client.set('fs:cidlookup:name:%s' % num, name)
+
 
 if __name__ == "__main__":
   import argparse
   parser = argparse.ArgumentParser()
   parser.add_argument('ini_file')
-  parser.add_argument("--no-update", help="Don't call asterisk", action='store_true', default=False)
   args = parser.parse_args()
   import configparser
   config = configparser.RawConfigParser()

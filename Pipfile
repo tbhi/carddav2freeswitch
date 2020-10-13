@@ -9,7 +9,7 @@ verify_ssl = true
 vobject = "*"
 requests = "*"
 lxml = "*"
-pyst2 = "*"
+pymemcache = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3"

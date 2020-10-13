@@ -1,45 +1,16 @@
-# CardDAV-to-Asterisk import
+# CardDAV-to-FreeSWITCH import
 
-This script reads all contacts from a CardDAV addressbook and puts them into Asterisk's internal caller id database.
-That way Asterisk can show a caller's name instead of just the number.
+This script reads all contacts from a CardDAV addressbook and puts them into memcached so FreeSWITCH's cidlookup app
+can read them
 
-If there's already an entry in Asterisk's caller database for a specific number, this script updates the number with the new name.
+If there's already an entry in memcached for a specific number, this script updates the number with the new name.
 So far I have only tested with OwnCloud 9 and Nextcloud 13.
 
 ### Requirements
-* Python 2
-* Additional Python 2 modules: requests, vobjects, pyst, lxml
-  (Debian packages: python-requests, python-vobject, python-pyst, python-lxml)
+* Python 3
+* pipenv
 
 ### Usage
 #### Configuration
-1. This script uses Asterisk Manager to access the caller id database, so you need to set up an user with "system" permissions if you have not already done so. To add an user create the file "/etc/asterisk/manager.d/carddav2asterisk.conf":
-```
-[carddavimport]
-secret = cidpwd
-permit = 127.0.0.1/255.255.255.0
-read = system
-write = system
-```
-2. Open the script in an editor and edit the user's credentials and host and port of Asterisk's Manager interface:
-```
-# ASTERISK MANAGER CONNECTION
-HOST = 'localhost'
-PORT = 5038
-USER = 'carddavimport'
-PASS = 'cidpwd'
-```
-3. Change NATIONALPREFIX and DOMESTICPREFIX to match your location:
-```
-# PERSONAL SETTINGS
-NATIONALPREFIX = "0049"
-DOMESTICPREFIX = "0841"
-```
-4. If you haven't configured CID lookup in Asterisk yet, you may want to add something like this somewhere at the beginning of your dialplan in extensions.conf:
-``exten => <yourExtension>,n,Set(CALLERID(name)=${IF(${DB_EXISTS(cidname/${CALLERID(num)})}?${DB(cidname/${CALLERID(num)})}:${CALLERID(name)})})``
 
-#### How to run the script
-``./carddav2asterisk.py <URl to CardDAV addressbook> <CardDAV username> <CardDAV password>``
-
-Example:
-``./carddav2asterisk.py https://owncloud.example.com/remote.php/dav/addressbooks/users/russmeyer/contacts/ meyerr pa55w0rd``
+See https://freeswitch.org/confluence/display/FREESWITCH/mod_cidlookup
