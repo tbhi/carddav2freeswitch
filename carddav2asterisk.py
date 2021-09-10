@@ -44,7 +44,7 @@ def main(args, config):
     if "tel" in vcard.contents:
       for telno in vcard.contents['tel']:
         num = tidyPhoneNumber(telno.value)
-        if "fn" in vcard.contents:
+        if num and "fn" in vcard.contents:
           name = vcard.fn.value
           print("Adding/updating Number: "+num+" Name: "+name)
           client.set('fs:cidlookup:name:%s' % num, name)
