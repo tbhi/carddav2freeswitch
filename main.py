@@ -36,7 +36,7 @@ def tidyPhoneNumber(num):
 def main(args, config):
   auth = HTTPBasicAuth(config['carddav']['user'], config['carddav']['pass'])
   url = config['carddav']['url']
-  client = pymemcache.client.base.Client('127.0.0.1')
+  client = pymemcache.client.base.Client(('127.0.0.1', 11211))
   # get phone numbers from vcard
   for vurl in getAllVcardLinks(url, auth):
     r = requests.request("GET",vurl,auth=auth)
